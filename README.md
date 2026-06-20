@@ -1,46 +1,111 @@
 # PPTX 中英双向翻译 Skill
 
 > 将中文 PowerPoint 翻译为英文，或将英文翻译为中文。保持原有排版、样式、图片不变，自动替换字体，段落级翻译避免碎片化。
+>
+> 支持 CodeBuddy、Claude Code、Cursor、Cline、Windsurf 等主流 AI 编程智能体。
 
 ## 📦 安装
 
-### 方式一：CodeBuddy 插件市场安装（推荐）
+### 通用前置依赖
 
-在 CodeBuddy 中执行以下命令：
+无论用哪个智能体，都需要先安装 Python 依赖：
 
 ```bash
-# 1. 添加插件市场
-/plugin marketplace add smiler488/pptx-zh2en
+pip install python-pptx
+```
 
-# 2. 安装插件
+---
+
+### CodeBuddy
+
+**方式一：插件市场安装（推荐）**
+
+```bash
+/plugin marketplace add smiler488/pptx-zh2en
 /plugin install pptx-zh2en@pptx-zh2en-marketplace
 ```
 
-安装 Python 依赖：
+**方式二：手动安装**
 
 ```bash
-pip install python-pptx
+git clone https://github.com/smiler488/pptx-zh2en.git
+cp -r pptx-zh2en/plugins/pptx-zh2en/skills/pptx-zh2en ~/.codebuddy/skills/
 ```
 
-### 方式二：手动安装（git clone）
+安装后对 CodeBuddy 说"帮我把这个PPT翻译成英文"即可自动触发。
+
+---
+
+### Claude Code
+
+Claude Code 使用 `.claude/commands/` 目录存放自定义技能：
 
 ```bash
-# 克隆仓库到 CodeBuddy skills 目录
-git clone https://github.com/smiler488/pptx-zh2en.git ~/.codebuddy/skills/pptx-zh2en
+# 克隆仓库
+git clone https://github.com/smiler488/pptx-zh2en.git
 
-# 安装依赖
-pip install python-pptx
+# 复制 skill 到 Claude Code 的 commands 目录
+mkdir -p ~/.claude/commands
+cp -r pptx-zh2en/plugins/pptx-zh2en/skills/pptx-zh2en ~/.claude/commands/
+
+# 或放到项目级别
+cp -r pptx-zh2en/plugins/pptx-zh2en/skills/pptx-zh2en .claude/commands/
 ```
 
-> 手动安装时，请将 `skills/pptx-zh2en/` 目录下的内容复制到 `~/.codebuddy/skills/pptx-zh2en/`。
+安装后在 Claude Code 中输入 `/pptx-zh2en` 即可触发，或直接说"翻译这个PPT"。
 
-### 方式三：独立使用（脱离 CodeBuddy）
+---
 
-脚本可以独立运行，只需安装 `python-pptx`：
+### Cursor
+
+Cursor 使用 `.cursor/skills/` 或 `AGENTS.md` 识别技能：
+
+```bash
+# 克隆仓库
+git clone https://github.com/smiler488/pptx-zh2en.git
+
+# 复制到项目级别（推荐）
+cp -r pptx-zh2en/plugins/pptx-zh2en/skills/pptx-zh2en .cursor/skills/
+
+# 或全局安装
+cp -r pptx-zh2en/plugins/pptx-zh2en/skills/pptx-zh2en ~/.cursor/skills/
+```
+
+安装后在 Cursor 的 Agent 模式中说"翻译这个PPT"即可自动识别 SKILL.md 并执行。
+
+---
+
+### Cline / Windsurf / 其他智能体
+
+大多数 AI 编程智能体都支持 `.agent/skills/` 目录：
+
+```bash
+# 克隆仓库
+git clone https://github.com/smiler488/pptx-zh2en.git
+
+# 复制到项目的 .agent/skills/ 目录
+mkdir -p .agent/skills
+cp -r pptx-zh2en/plugins/pptx-zh2en/skills/pptx-zh2en .agent/skills/
+```
+
+安装后智能体会自动识别 `SKILL.md` 的 frontmatter 并在相关场景触发。
+
+---
+
+### 独立使用（脱离任何智能体）
+
+脚本本身是纯 Python，不依赖任何智能体平台，可以独立运行：
 
 ```bash
 pip install python-pptx
-python scripts/translate_pptx_inline.py --mode extract --direction zh2en -i input.pptx -t trans.json
+
+# Step 1: 提取文本
+python translate_pptx_inline.py --mode extract --direction zh2en -i chinese.pptx -t trans.json
+
+# Step 2: 编辑 trans.json，填写 translated 字段（人工或用任意翻译工具）
+
+# Step 3: 写回翻译
+python translate_pptx_inline.py --mode apply --direction zh2en -i chinese.pptx -t trans.json -o english.pptx
 ```
 
 ## ✨ 功能特性
@@ -59,7 +124,7 @@ python scripts/translate_pptx_inline.py --mode extract --direction zh2en -i inpu
 
 ## 🚀 使用方法
 
-### 标准流程（CodeBuddy 内联翻译 — 推荐）
+### 标准流程（AI 内联翻译 — 推荐）
 
 ```bash
 # Step 1: 提取文本（段落级）
@@ -81,7 +146,7 @@ python scripts/translate_pptx_inline.py \
 
 ### 外部 API 全自动模式
 
-如果有多 OpenAI 兼容 API Key，可一步完成提取+翻译+写回：
+如果有 OpenAI 兼容 API Key，可一步完成提取+翻译+写回：
 
 ```bash
 export OPENAI_API_KEY="sk-..."
@@ -115,14 +180,14 @@ python scripts/translate_pptx_inline.py \
 ```
 pptx-zh2en/
 ├── .codebuddy-plugin/
-│   └── marketplace.json              # 插件市场清单
+│   └── marketplace.json              # CodeBuddy 插件市场清单
 ├── plugins/
 │   └── pptx-zh2en/
 │       ├── .codebuddy-plugin/
-│       │   └── plugin.json           # 插件清单
+│       │   └── plugin.json           # CodeBuddy 插件清单
 │       └── skills/
 │           └── pptx-zh2en/
-│               ├── SKILL.md          # Skill 说明文件
+│               ├── SKILL.md          # Skill 说明文件（跨平台通用）
 │               └── scripts/
 │                   ├── translate_pptx_inline.py  # 主脚本（内联模式）
 │                   └── translate_pptx.py         # 备选脚本（API 模式）
@@ -130,6 +195,8 @@ pptx-zh2en/
 ├── LICENSE
 └── .gitignore
 ```
+
+> **SKILL.md 是跨智能体通用标准**：CodeBuddy、Claude Code、Cursor、Cline、Windsurf 等都通过识别 SKILL.md 的 YAML frontmatter（`name`、`description`）来发现和触发技能。
 
 ## 🌾 专业术语表
 
