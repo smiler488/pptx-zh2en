@@ -1,19 +1,19 @@
 #!/usr/bin/env python3
 """
-PPTX 中英双向翻译脚本 v2.1
+PPTX 中英双向翻译脚本 v2.4
 
 用法：
     extract:  python translate_pptx_inline.py --mode extract -i zh.pptx -t trans.json [--direction zh2en|en2zh]
     apply:    python translate_pptx_inline.py --mode apply   -i zh.pptx -t trans.json -o en.pptx [--direction zh2en|en2zh]
 
-v2.1 新增：
-    --direction en2zh  支持英文→中文翻译（字体/标点/质检方向反转）
-
-v2.0 核心改进：
+功能：
     1. 段落级提取+翻译（解决 run 碎片化导致翻译断裂）
     2. 中文标点自动清洗
-    3. 翻译后自动质检（残留中文/标点/重复词）
-    4. 双语重复检测（中英同框时提示用已有英文）
+    3. 翻译后自动质检（残留源语言字符/标点/重复词/缺失空格）
+    4. 双语重复检测（中英同框时自动去重）
+    5. --direction en2zh 支持英文→中文翻译（字体/标点/质检方向反转）
+    6. 三层字体替换（精确映射 + 启发式 + 主题字体）
+    7. 文本框自动适配（保留原有 autofit，不破坏排版）
 """
 
 import argparse
@@ -701,7 +701,7 @@ def auto_qa(pptx_path, direction="zh2en"):
 # ═════════════════════════════════════════════════════════════════════════
 
 def main():
-    parser = argparse.ArgumentParser(description="PPTX 中英双向翻译工具 v2.1")
+    parser = argparse.ArgumentParser(description="PPTX 中英双向翻译工具 v2.4")
     parser.add_argument("--mode", choices=["extract", "apply"], required=True)
     parser.add_argument("--direction", choices=["zh2en", "en2zh"], default="zh2en",
                         help="翻译方向：zh2en（中→英，默认）| en2zh（英→中）")

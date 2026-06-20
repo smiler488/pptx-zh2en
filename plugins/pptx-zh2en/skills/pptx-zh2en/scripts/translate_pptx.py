@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 """
-PPTX 中文转英文翻译脚本（外部 API 模式）
-用法: python translate_pptx.py --input zh.pptx --output en.pptx [--api-key KEY]
+PPTX 中英双向翻译脚本（外部 API 模式）v2.4
+用法: python translate_pptx.py --input zh.pptx --output en.pptx [--direction zh2en|en2zh] [--api-key KEY]
 
 依赖: python-pptx, requests
-自带字体替换 + 表格/组合形状支持
+功能: 段落级翻译、三层字体替换、标点清洗、自动质检、表格/组合形状支持
 """
 
 import argparse
+import io
 import json
 import os
 import re
@@ -151,6 +152,70 @@ def fix_theme_fonts(pptx_path):
     return count
 
 
+# ─── en2zh 方向：英文字体 → 中文字体 ──────────────────────────────────────
+
+EN2ZH_FONT_MAP = {
+    "Calibri": "微软雅黑", "Calibri Light": "微软雅黑 Light",
+    "Arial": "黑体", "Arial Black": "黑体", "Arial Narrow": "黑体",
+    "Times New Roman": "宋体", "Georgia": "宋体",
+    "Cambria": "宋体", "Garamond": "宋体",
+    "Helvetica": "黑体", "Helvetica Neue": "黑体",
+    "Tahoma": "微软雅黑", "Trebuchet MS": "微软雅黑",
+    "Verdana": "微软雅黑", "Segoe UI": "微软雅黑",
+    "Courier New": "仿宋", "Consolas": "仿宋",
+}
+
+
+def replace_run_font_en2zh(run):
+    """en2zh 方向：将英文字体替换为中文字体"""
+    try:
+        if not run.font:
+            return False
+        fn = run.font.name
+        if fn and fn in EN2ZH_FONT_MAP:
+            run.font.name = EN2ZH_FONT_MAP[fn]
+            return True
+        if fn is None:
+            run.font.name = "微软雅黑"
+            return True
+    except Exception:
+        pass
+    return False
+
+
+def fix_theme_fonts_en2zh(pptx_path):
+    """en2zh 方向：将主题字体中的英文字体替换为中文字体"""
+    buf = io.BytesIO()
+    count = 0
+    with zipfile.ZipFile(pptx_path, 'r') as zin:
+        with zipfile.ZipFile(buf, 'w', zipfile.ZIP_DEFLATED) as zout:
+            for item in zin.namelist():
+                data = zin.read(item)
+                if 'theme' in item and item.endswith('.xml'):
+                    try:
+                        xml = data.decode('utf-8')
+                        def _rep_ea(m):
+                            nonlocal count
+                            count += 1
+                            return '<a:ea typeface="微软雅黑"/>'
+                        xml = re.sub(r'<a:ea\s+typeface=""\s*/>', _rep_ea, xml)
+                        for script in ["Hans", "Hant"]:
+                            def _rep_sc(m, s=script):
+                                nonlocal count
+                                count += 1
+                                return f'<a:font script="{s}" typeface="微软雅黑"/>'
+                            xml = re.sub(
+                                rf'<a:font\s+script="{script}"\s+typeface="([^"]*)"\s*/>',
+                                _rep_sc, xml)
+                        data = xml.encode('utf-8')
+                    except UnicodeDecodeError:
+                        pass
+                zout.writestr(item, data)
+    with open(pptx_path, 'wb') as f:
+        f.write(buf.getvalue())
+    return count
+
+
 # ─── 递归遍历（与 inline 版一致）──────────────────────────────────────────
 
 def iter_shapes_recursive(shape):
@@ -178,18 +243,26 @@ def iter_slide_text_frames(slide):
 
 # ─── API 翻译 ─────────────────────────────────────────────────────────────
 
-def translate_batch_via_api(texts, api_url, api_key, model):
+def translate_batch_via_api(texts, api_url, api_key, model, direction="zh2en"):
     if not texts:
         return []
     numbered = "\n".join(f"[{i+1}] {t}" for i, t in enumerate(texts))
+
+    if direction == "zh2en":
+        task = "Translate the following Chinese texts to English."
+        rules = "3. For slide titles: use Title Case"
+    else:
+        task = "Translate the following English texts to Chinese (Simplified)."
+        rules = "3. For slide titles: use concise Chinese"
+
     prompt = f"""You are a professional academic translator specializing in agricultural science, remote sensing, and digital phenotyping.
 
-Translate the following Chinese texts to English. Rules:
+{task} Rules:
 1. Return ONLY the translations, numbered with [1], [2], etc. — no extra explanation
 2. Keep professional academic terminology accurate
-3. For slide titles: use Title Case
+{rules}
 4. Preserve any numbers, units (e.g. μmol·m⁻²·s⁻¹), and formulas unchanged
-5. If a text is already in English or is a number/symbol, return it as-is
+5. If a text is already in the target language or is a number/symbol, return it as-is
 6. Keep translations concise — slide text should be brief and impactful
 
 Texts to translate:
@@ -215,7 +288,7 @@ Texts to translate:
     return [translated.get(i, texts[i]) for i in range(len(texts))]
 
 
-def translate_via_api(texts, api_url, api_key, model):
+def translate_via_api(texts, api_url, api_key, model, direction="zh2en"):
     all_results = []
     total = len(texts)
     print(f"  共 {total} 条文本，分批翻译（每批 {BATCH_SIZE} 条）...")
@@ -223,7 +296,7 @@ def translate_via_api(texts, api_url, api_key, model):
         batch = texts[start:start + BATCH_SIZE]
         end = min(start + BATCH_SIZE, total)
         print(f"  翻译第 {start+1}–{end} 条...")
-        all_results.extend(translate_batch_via_api(batch, api_url, api_key, model))
+        all_results.extend(translate_batch_via_api(batch, api_url, api_key, model, direction))
         if end < total:
             time.sleep(REQUEST_DELAY)
     return all_results
@@ -231,10 +304,11 @@ def translate_via_api(texts, api_url, api_key, model):
 
 # ─── 主流程 ───────────────────────────────────────────────────────────────
 
-def translate_presentation(input_path, output_path, api_url, api_key, model):
+def translate_presentation(input_path, output_path, api_url, api_key, model, direction="zh2en"):
     print(f"\n{'='*60}")
     print(f"  输入: {input_path}")
     print(f"  输出: {output_path}")
+    print(f"  方向: {direction}")
     print(f"  模型: {model}")
     print(f"{'='*60}\n")
 
@@ -242,7 +316,7 @@ def translate_presentation(input_path, output_path, api_url, api_key, model):
     total_slides = len(prs.slides)
     print(f"[1/4] 加载成功，共 {total_slides} 张幻灯片\n")
 
-    # 收集所有含中文的 run
+    # 收集需要翻译的文本
     print("[2/4] 扫描所有文本（含表格、组合形状、备注页）...")
     run_infos = []  # [(run, original, slide_num)]
     for slide_idx, slide in enumerate(prs.slides):
@@ -250,14 +324,19 @@ def translate_presentation(input_path, output_path, api_url, api_key, model):
         for shape, tf, sub_path in iter_slide_text_frames(slide):
             for para in tf.paragraphs:
                 for run in para.runs:
-                    if run.text.strip() and contains_chinese(run.text):
+                    if not run.text.strip():
+                        continue
+                    if direction == "zh2en" and contains_chinese(run.text):
+                        run_infos.append((run, run.text, slide_num))
+                    elif direction == "en2zh" and contains_english(run.text) and re.search(r'[A-Za-z]{2,}', run.text):
                         run_infos.append((run, run.text, slide_num))
 
     total_texts = len(run_infos)
-    print(f"  找到 {total_texts} 条含中文的文本段\n")
+    src_label = "中文" if direction == "zh2en" else "英文"
+    print(f"  找到 {total_texts} 条含{src_label}的文本段\n")
 
     if total_texts == 0:
-        print("  未找到中文内容，文件可能已是英文版。")
+        print(f"  未找到{src_label}内容，文件可能已是目标语言版本。")
         import shutil
         shutil.copy2(input_path, output_path)
         return
@@ -265,7 +344,7 @@ def translate_presentation(input_path, output_path, api_url, api_key, model):
     # 翻译
     print("[3/4] 开始翻译...")
     raw_texts = [info[1] for info in run_infos]
-    translated_texts = translate_via_api(raw_texts, api_url, api_key, model)
+    translated_texts = translate_via_api(raw_texts, api_url, api_key, model, direction)
 
     # 写回 + 字体替换
     print("\n[4/4] 写回翻译结果 + 替换字体...")
@@ -283,14 +362,17 @@ def translate_presentation(input_path, output_path, api_url, api_key, model):
             run.text = translated
             changed += 1
             was_translated = True
-        if replace_run_font(run, was_translated):
+        if replace_run_font(run, was_translated) if direction == "zh2en" else replace_run_font_en2zh(run):
             font_changed += 1
 
     os.makedirs(os.path.dirname(os.path.abspath(output_path)), exist_ok=True)
     prs.save(output_path)
 
     # 主题字体替换
-    theme_changed = fix_theme_fonts(output_path)
+    if direction == "zh2en":
+        theme_changed = fix_theme_fonts(output_path)
+    else:
+        theme_changed = fix_theme_fonts_en2zh(output_path)
 
     print(f"\n✅ 翻译完成！共 {total_slides} 张幻灯片，{changed} 条文本")
     print(f"✅ Run 级字体替换：{font_changed} 处")
@@ -306,9 +388,11 @@ def translate_presentation(input_path, output_path, api_url, api_key, model):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="将中文 PPTX 翻译为英文版本（外部 API 模式）")
-    parser.add_argument("--input", "-i", required=True, help="输入中文 PPTX 文件路径")
-    parser.add_argument("--output", "-o", help="输出英文 PPTX 文件路径")
+    parser = argparse.ArgumentParser(description="PPTX 中英双向翻译（外部 API 模式）v2.4")
+    parser.add_argument("--input", "-i", required=True, help="输入 PPTX 文件路径")
+    parser.add_argument("--output", "-o", help="输出 PPTX 文件路径")
+    parser.add_argument("--direction", choices=["zh2en", "en2zh"], default="zh2en",
+                        help="翻译方向：zh2en（中→英，默认）| en2zh（英→中）")
     parser.add_argument("--api-url",
                         default=os.environ.get("OPENAI_BASE_URL", "https://api.openai.com/v1"))
     parser.add_argument("--api-key", default=os.environ.get("OPENAI_API_KEY", ""))
@@ -323,8 +407,9 @@ def main():
         print("❌ 错误：只支持 .pptx 格式（不支持 .ppt）")
         sys.exit(1)
 
-    output = args.output or str(Path(args.input).with_name(f"{Path(args.input).stem}_EN.pptx"))
-    translate_presentation(args.input, output, args.api_url, args.api_key, args.model)
+    suffix = "_ZH.pptx" if args.direction == "en2zh" else "_EN.pptx"
+    output = args.output or str(Path(args.input).with_name(f"{Path(args.input).stem}{suffix}"))
+    translate_presentation(args.input, output, args.api_url, args.api_key, args.model, args.direction)
 
 
 if __name__ == "__main__":
