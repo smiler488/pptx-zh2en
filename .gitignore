@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+*.pyo
+.DS_Store
+*.tmp
+translations.json
+*_EN.pptx
+*_ZH.pptx
