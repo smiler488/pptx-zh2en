@@ -1,0 +1,16 @@
+{
+  "name": "pptx-zh2en",
+  "display_name": "PPTX 中英双向翻译",
+  "description": "将中文PPT翻译为英文，或将英文PPT翻译为中文。段落级翻译、三层字体替换、标点清洗、自动质检、双语去重、排版保持。",
+  "version": "2.4.0",
+  "author": "WorkBuddy",
+  "license": "MIT",
+  "repository": "https://github.com/smiler488/pptx-zh2en",
+  "category": "效率工具",
+  "keywords": [
+    "PPT翻译", "pptx翻译", "中文PPT翻译", "英文PPT翻译",
+    "translate ppt", "ppt translation", "chinese to english",
+    "english to chinese", "中英文PPT转换", "PPT英文版",
+    "学术PPT", "字体替换", "段落级翻译"
+  ]
+}

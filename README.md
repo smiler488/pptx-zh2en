@@ -15,83 +15,41 @@ pip install python-pptx
 pip install "markitdown[pptx]"  # 可选，用于预览 PPT 内容
 ```
 
----
+### 最简单的方式：告诉你的 AI 助手
 
-### CodeBuddy
+直接拷贝下面这句话发给你的 AI 助手：
 
-**方式一：插件市场安装（推荐）**
+> 帮我安装 PPTX 中英双向翻译 Skill，仓库地址：https://github.com/smiler488/pptx-zh2en
+
+Agent 会自动克隆仓库并安装到对应的 Skill 目录。
+
+### 手动安装
+
+将本仓库克隆到你项目下的 Skill 目录，不同 IDE 对应的路径：
+
+| IDE | Skill 目录 |
+|-----|-----------|
+| CodeBuddy | `.codebuddy/skills/pptx-zh2en/` |
+| Claude Code | `.claude/skills/pptx-zh2en/` |
+| Cursor | `.cursor/skills/pptx-zh2en/` |
+| Windsurf | `.windsurf/skills/pptx-zh2en/` |
+| Cline | `.cline/skills/pptx-zh2en/` |
+| 通用 | `.agents/skills/pptx-zh2en/` |
+
+```bash
+# 示例：安装到 Cursor
+git clone https://github.com/smiler488/pptx-zh2en.git \
+  .cursor/skills/pptx-zh2en
+```
+
+只要目录下有 `SKILL.md`，Agent 下次启动就会自动加载这个 Skill。
+
+### CodeBuddy 插件市场安装
 
 ```bash
 /plugin marketplace add smiler488/pptx-zh2en
 /plugin install pptx-zh2en@pptx-zh2en-marketplace
 ```
-
-**方式二：手动安装**
-
-```bash
-git clone https://github.com/smiler488/pptx-zh2en.git
-cp -r pptx-zh2en/plugins/pptx-zh2en/skills/pptx-zh2en ~/.codebuddy/skills/
-```
-
-安装后对 CodeBuddy 说"帮我把这个PPT翻译成英文"即可自动触发。
-
----
-
-### Claude Code
-
-Claude Code 使用 `.claude/commands/` 目录存放自定义技能：
-
-```bash
-# 克隆仓库
-git clone https://github.com/smiler488/pptx-zh2en.git
-
-# 复制 skill 到 Claude Code 的 commands 目录
-mkdir -p ~/.claude/commands
-cp -r pptx-zh2en/plugins/pptx-zh2en/skills/pptx-zh2en ~/.claude/commands/
-
-# 或放到项目级别
-cp -r pptx-zh2en/plugins/pptx-zh2en/skills/pptx-zh2en .claude/commands/
-```
-
-安装后在 Claude Code 中输入 `/pptx-zh2en` 即可触发，或直接说"翻译这个PPT"。
-
----
-
-### Cursor
-
-Cursor 使用 `.cursor/skills/` 或 `AGENTS.md` 识别技能：
-
-```bash
-# 克隆仓库
-git clone https://github.com/smiler488/pptx-zh2en.git
-
-# 复制到项目级别（推荐）
-cp -r pptx-zh2en/plugins/pptx-zh2en/skills/pptx-zh2en .cursor/skills/
-
-# 或全局安装
-cp -r pptx-zh2en/plugins/pptx-zh2en/skills/pptx-zh2en ~/.cursor/skills/
-```
-
-安装后在 Cursor 的 Agent 模式中说"翻译这个PPT"即可自动识别 SKILL.md 并执行。
-
----
-
-### Cline / Windsurf / 其他智能体
-
-大多数 AI 编程智能体都支持 `.agent/skills/` 目录：
-
-```bash
-# 克隆仓库
-git clone https://github.com/smiler488/pptx-zh2en.git
-
-# 复制到项目的 .agent/skills/ 目录
-mkdir -p .agent/skills
-cp -r pptx-zh2en/plugins/pptx-zh2en/skills/pptx-zh2en .agent/skills/
-```
-
-安装后智能体会自动识别 `SKILL.md` 的 frontmatter 并在相关场景触发。
-
----
 
 ### 独立使用（脱离任何智能体）
 
@@ -102,17 +60,17 @@ pip install python-pptx
 
 # 中→英
 # Step 1: 提取文本
-python translate_pptx_inline.py --mode extract --direction zh2en -i chinese.pptx -t trans.json
+python scripts/translate_pptx_inline.py --mode extract --direction zh2en -i chinese.pptx -t trans.json
 # Step 2: 编辑 trans.json，填写 translated 字段（人工或用任意翻译工具）
 # Step 3: 写回翻译
-python translate_pptx_inline.py --mode apply --direction zh2en -i chinese.pptx -t trans.json -o english.pptx
+python scripts/translate_pptx_inline.py --mode apply --direction zh2en -i chinese.pptx -t trans.json -o english.pptx
 
 # 英→中
 # Step 1: 提取文本
-python translate_pptx_inline.py --mode extract --direction en2zh -i english.pptx -t trans.json
+python scripts/translate_pptx_inline.py --mode extract --direction en2zh -i english.pptx -t trans.json
 # Step 2: 编辑 trans.json，填写 translated 字段
 # Step 3: 写回翻译
-python translate_pptx_inline.py --mode apply --direction en2zh -i english.pptx -t trans.json -o chinese.pptx
+python scripts/translate_pptx_inline.py --mode apply --direction en2zh -i english.pptx -t trans.json -o chinese.pptx
 ```
 
 ## ✨ 功能特性
@@ -194,24 +152,19 @@ python scripts/translate_pptx_inline.py \
 
 ```
 pptx-zh2en/
+├── SKILL.md                          # Skill 说明文件（跨平台通用，Agent 自动识别）
+├── skill.json                        # 机器可读配置（名称、版本、关键词）
+├── scripts/
+│   ├── translate_pptx_inline.py      # 主脚本（内联模式）
+│   └── translate_pptx.py             # 备选脚本（API 模式）
 ├── .codebuddy-plugin/
 │   └── marketplace.json              # CodeBuddy 插件市场清单
-├── plugins/
-│   └── pptx-zh2en/
-│       ├── .codebuddy-plugin/
-│       │   └── plugin.json           # CodeBuddy 插件清单
-│       └── skills/
-│           └── pptx-zh2en/
-│               ├── SKILL.md          # Skill 说明文件（跨平台通用）
-│               └── scripts/
-│                   ├── translate_pptx_inline.py  # 主脚本（内联模式）
-│                   └── translate_pptx.py         # 备选脚本（API 模式）
 ├── README.md
 ├── LICENSE
 └── .gitignore
 ```
 
-> **SKILL.md 是跨智能体通用标准**：CodeBuddy、Claude Code、Cursor、Cline、Windsurf 等都通过识别 SKILL.md 的 YAML frontmatter（`name`、`description`）来发现和触发技能。
+> **SKILL.md 是跨智能体通用标准**：CodeBuddy、Claude Code、Cursor、Cline、Windsurf 等都通过识别 SKILL.md 的 YAML frontmatter（`name`、`description`、`keywords`）来发现和触发技能。
 
 ## 🌾 专业术语表
 

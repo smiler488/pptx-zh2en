@@ -1,10 +1,26 @@
 ---
 name: pptx-zh2en
-description: "PPT中英双向翻译。将中文PPT翻译为英文，或将英文PPT翻译为中文。保持排版、样式、图片不变，自动替换字体、段落级翻译、标点清洗、自动质检。关键词：中文PPT翻译、PPT英文版、PPT翻译、translate ppt、中英文PPT转换、pptx翻译、英文PPT转中文"
+description: "PPT中英双向翻译。将中文PPT翻译为英文，或将英文PPT翻译为中文。保持排版、样式、图片不变，自动替换字体、段落级翻译、标点清洗、自动质检。"
 version: "2.4.0"
 author: "WorkBuddy"
 created: "2026-06-19"
 updated: "2026-06-20"
+alwaysApply: false
+keywords:
+  - PPT翻译
+  - pptx翻译
+  - 中文PPT翻译
+  - 英文PPT翻译
+  - translate ppt
+  - ppt translation
+  - chinese to english ppt
+  - english to chinese ppt
+  - 中英文PPT转换
+  - PPT英文版
+  - PPT中文版
+  - 学术PPT翻译
+  - 字体替换
+  - 段落级翻译
 ---
 
 # PPTX 中英双向翻译 Skill
@@ -24,6 +40,16 @@ updated: "2026-06-20"
 | 📐 **文本框自动适配** | 保留原有 autofit 类型，仅对无设置的文本框开启换行+normAutofit |
 | ⚡ **双语重复检测** | 检测原 PPT 中已有的翻译，避免重复 |
 | 🎨 **保留全部格式** | 字号、颜色、加粗、布局、图片均不改动 |
+
+---
+
+## 触发场景
+
+| 用户可能会说 | 执行方向 |
+|-------------|---------|
+| "帮我把这个PPT翻译成英文" / "PPT做个英文版" | zh2en（中→英） |
+| "把这个英文PPT翻译成中文" / "PPT做个中文版" | en2zh（英→中） |
+| "翻译这个PPT" / "PPT翻译一下" | 根据内容自动判断方向 |
 
 ---
 

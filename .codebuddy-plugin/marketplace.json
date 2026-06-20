@@ -8,7 +8,7 @@
     {
       "name": "pptx-zh2en",
       "description": "将中文PPT翻译为英文，或将英文PPT翻译为中文。段落级翻译、三层字体替换、标点清洗、自动质检、双语去重、排版保持。",
-      "source": "./plugins/pptx-zh2en",
+      "source": ".",
       "version": "2.4.0",
       "author": {
         "name": "WorkBuddy"
