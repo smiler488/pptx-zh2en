@@ -12,6 +12,7 @@
 
 ```bash
 pip install python-pptx
+pip install "markitdown[pptx]"  # 可选，用于预览 PPT 内容
 ```
 
 ---
@@ -99,13 +100,19 @@ cp -r pptx-zh2en/plugins/pptx-zh2en/skills/pptx-zh2en .agent/skills/
 ```bash
 pip install python-pptx
 
+# 中→英
 # Step 1: 提取文本
 python translate_pptx_inline.py --mode extract --direction zh2en -i chinese.pptx -t trans.json
-
 # Step 2: 编辑 trans.json，填写 translated 字段（人工或用任意翻译工具）
-
 # Step 3: 写回翻译
 python translate_pptx_inline.py --mode apply --direction zh2en -i chinese.pptx -t trans.json -o english.pptx
+
+# 英→中
+# Step 1: 提取文本
+python translate_pptx_inline.py --mode extract --direction en2zh -i english.pptx -t trans.json
+# Step 2: 编辑 trans.json，填写 translated 字段
+# Step 3: 写回翻译
+python translate_pptx_inline.py --mode apply --direction en2zh -i english.pptx -t trans.json -o chinese.pptx
 ```
 
 ## ✨ 功能特性
@@ -152,9 +159,17 @@ python scripts/translate_pptx_inline.py \
 export OPENAI_API_KEY="sk-..."
 export OPENAI_BASE_URL="https://api.openai.com/v1"
 
+# 中→英（默认）
 python scripts/translate_pptx.py \
   --input chinese.pptx \
   --output english.pptx \
+  --model gpt-4o-mini
+
+# 英→中
+python scripts/translate_pptx.py \
+  --direction en2zh \
+  --input english.pptx \
+  --output chinese.pptx \
   --model gpt-4o-mini
 ```
 
