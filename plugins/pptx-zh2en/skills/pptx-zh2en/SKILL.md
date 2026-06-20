@@ -1,17 +1,17 @@
 ---
 name: pptx-zh2en
-description: "将中文PPT翻译为英文版本。当用户需要把中文PowerPoint演示文稿翻译成英文时触发，保持原有排版、样式、图片不变，仅翻译文本内容。关键词：中文PPT翻译、PPT英文版、PPT翻译、translate ppt、中英文PPT转换、pptx翻译"
+description: "PPT中英双向翻译。将中文PPT翻译为英文，或将英文PPT翻译为中文。保持排版、样式、图片不变，自动替换字体、段落级翻译、标点清洗、自动质检。关键词：中文PPT翻译、PPT英文版、PPT翻译、translate ppt、中英文PPT转换、pptx翻译、英文PPT转中文"
 version: "2.4.0"
 author: "WorkBuddy"
 created: "2026-06-19"
 updated: "2026-06-20"
 ---
 
-# PPTX 中文转英文 Skill
+# PPTX 中英双向翻译 Skill
 
 ## 功能说明
 
-将中文 PowerPoint (.pptx) 文件翻译为英文版本：
+将 PowerPoint (.pptx) 文件在中英文之间双向翻译：
 
 | 功能 | 说明 |
 |------|------|
