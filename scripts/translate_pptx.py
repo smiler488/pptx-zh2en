@@ -9,13 +9,11 @@ PPTX 中英双向翻译脚本（外部 API 模式）v2.4
 
 import argparse
 import io
-import json
 import os
 import re
 import sys
 import time
 import zipfile
-from collections import Counter
 from pathlib import Path
 
 try:
@@ -86,6 +84,11 @@ def get_en_font_for(cn_font):
 
 def contains_chinese(text: str) -> bool:
     return bool(re.search(r'[\u4e00-\u9fff\u3400-\u4dbf]', text))
+
+
+def contains_english(text: str) -> bool:
+    """True if the text contains Latin letters (used for the en2zh direction)."""
+    return bool(re.search(r'[A-Za-z]', text))
 
 
 def replace_run_font(run, was_translated=False):
@@ -377,7 +380,7 @@ def translate_presentation(input_path, output_path, api_url, api_key, model, dir
     print(f"\n✅ 翻译完成！共 {total_slides} 张幻灯片，{changed} 条文本")
     print(f"✅ Run 级字体替换：{font_changed} 处")
     print(f"✅ 主题字体替换：{theme_changed} 处")
-    print(f"   英文版已保存至: {output_path}\n")
+    print(f"   {'英文版' if direction == 'zh2en' else '中文版'}已保存至: {output_path}\n")
 
     if warnings:
         print(f"⚠️  以下幻灯片文本可能溢出（共 {len(warnings)} 处）:")
