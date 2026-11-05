@@ -2,6 +2,7 @@
 
 English | [中文](README.zh-CN.md)
 
+[![CI](https://github.com/smiler488/pptx-zh2en/actions/workflows/validate.yml/badge.svg)](https://github.com/smiler488/pptx-zh2en/actions/workflows/validate.yml) [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE) ![Agent Skill](https://img.shields.io/badge/Agent_Skill-informational)
 An Agent Skill and two Python scripts that translate PowerPoint files between Chinese and English. Fonts, layout, images and tables stay in place.
 
 Academic talks often need a Chinese and an English version. The common way of translating slides (copy text out, paste translation back) breaks paragraphs into fragments and leaves Chinese fonts and full-width punctuation in the English version. Here the work is split instead: the script extracts every paragraph to JSON with its location, the assistant translates the JSON, and the script writes it back, swaps fonts, fixes punctuation and checks the result.
