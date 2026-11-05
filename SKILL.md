@@ -1,26 +1,11 @@
 ---
 name: pptx-zh2en
-description: "PPT中英双向翻译。将中文PPT翻译为英文，或将英文PPT翻译为中文。保持排版、样式、图片不变，自动替换字体、段落级翻译、标点清洗、自动质检。"
-version: "2.4.0"
-author: "WorkBuddy"
-created: "2026-06-19"
-updated: "2026-06-20"
-alwaysApply: false
-keywords:
-  - PPT翻译
-  - pptx翻译
-  - 中文PPT翻译
-  - 英文PPT翻译
-  - translate ppt
-  - ppt translation
-  - chinese to english ppt
-  - english to chinese ppt
-  - 中英文PPT转换
-  - PPT英文版
-  - PPT中文版
-  - 学术PPT翻译
-  - 字体替换
-  - 段落级翻译
+description: PPT 中英双向翻译。当用户要把中文 PPT 翻成英文版、把英文 PPT 翻成中文版，或说"PPT 做个英文版""翻译这个 pptx"时使用。段落级翻译，保留排版、图片和样式，自动替换字体、清洗标点并质检。Translate .pptx slides between Chinese and English while keeping the layout.
+license: MIT
+metadata:
+  author: Liangchao Deng (smiler488)
+  version: "2.4.1"
+  keywords: [PPT翻译, pptx翻译, 中文PPT翻译, 英文PPT翻译, translate ppt, ppt translation, 学术PPT翻译]
 ---
 
 # PPTX 中英双向翻译 Skill
@@ -31,15 +16,15 @@ keywords:
 
 | 功能 | 说明 |
 |------|------|
-| 🔄 **双向翻译** | 支持 `--direction zh2en`（中→英）和 `en2zh`（英→中）两个方向 |
-| 📝 **段落级提取翻译** | 以段落为单位提取和翻译，避免 run 碎片化导致翻译断裂 |
-| 🔤 **三层字体替换** | 精确映射 → 启发式判断 → 主题字体修改，适配所有字体 |
-| 🧹 **标点自动清洗** | 翻译后自动将源语言标点替换为目标语言标点 |
-| 🔍 **翻译后自动质检** | 自动检测残留源语言字符/标点/重复词/缺失空格 |
-| ⚠️ **遗漏翻译检测** | apply 时检测 `translated == original` 的段落，防止漏译 |
-| 📐 **文本框自动适配** | 保留原有 autofit 类型，仅对无设置的文本框开启换行+normAutofit |
-| ⚡ **双语重复检测** | 检测原 PPT 中已有的翻译，避免重复 |
-| 🎨 **保留全部格式** | 字号、颜色、加粗、布局、图片均不改动 |
+| **双向翻译** | 支持 `--direction zh2en`（中→英）和 `en2zh`（英→中）两个方向 |
+| **段落级提取翻译** | 以段落为单位提取和翻译，避免 run 碎片化导致翻译断裂 |
+| **三层字体替换** | 精确映射 → 启发式判断 → 主题字体修改，适配所有字体 |
+| **标点自动清洗** | 翻译后自动将源语言标点替换为目标语言标点 |
+| **翻译后自动质检** | 自动检测残留源语言字符/标点/重复词/缺失空格 |
+| **遗漏翻译检测** | apply 时检测 `translated == original` 的段落，防止漏译 |
+| **文本框自动适配** | 保留原有 autofit 类型，仅对无设置的文本框开启换行+normAutofit |
+| **双语重复检测** | 检测原 PPT 中已有的翻译，避免重复 |
+| **保留全部格式** | 字号、颜色、加粗、布局、图片均不改动 |
 
 ---
 
@@ -72,17 +57,17 @@ python3 -m markitdown input.pptx
 
 ### 第二步：提取文本（段落级）
 
-> 脚本位于 skill 目录下的 `scripts/` 子目录，使用相对路径 `scripts/translate_pptx_inline.py` 调用。
+> 下面的 `$SKILL_DIR` 指本 skill 的安装目录（例如 `~/.claude/skills/pptx-zh2en`）。在用户的工作目录里运行命令时，脚本要写完整路径，否则会找不到。
 
 ```bash
 # 中→英（默认）
-python3 scripts/translate_pptx_inline.py \
+python3 "$SKILL_DIR/scripts/translate_pptx_inline.py" \
   --mode extract --direction zh2en \
   --input input.pptx \
   --translations-file translations.json
 
 # 英→中
-python3 scripts/translate_pptx_inline.py \
+python3 "$SKILL_DIR/scripts/translate_pptx_inline.py" \
   --mode extract --direction en2zh \
   --input input.pptx \
   --translations-file translations.json
@@ -110,13 +95,13 @@ python3 scripts/translate_pptx_inline.py \
 ]
 ```
 
-> **⚡ 双语提示**：`has_existing_english=true` 的条目，`existing_english` 字段已提取出原文中的英文，可直接填入 `translated`。
+> **双语提示**：`has_existing_english=true` 的条目，`existing_english` 字段已提取出原文中的英文，可直接填入 `translated`。
 
 ### 第三步：AI 翻译所有文本
 
 **你（Agent）直接翻译所有条目，填写 `translated` 字段。**
 
-> ⚠️ **关键要求：必须用 JSON 中每条的 `original` 字段完整文本进行翻译，不要手动缩写或从预览中复制。**
+> **关键要求：必须用 JSON 中每条的 `original` 字段完整文本进行翻译，不要手动缩写或从预览中复制。**
 > 用 `id` 字段作为索引逐条处理，确保 100% 覆盖，不遗漏任何一条。
 
 翻译要求：
@@ -133,14 +118,14 @@ python3 scripts/translate_pptx_inline.py \
 
 ```bash
 # 中→英
-python3 scripts/translate_pptx_inline.py \
+python3 "$SKILL_DIR/scripts/translate_pptx_inline.py" \
   --mode apply --direction zh2en \
   --input input.pptx \
   --translations-file translations.json \
   --output output_EN.pptx
 
 # 英→中
-python3 scripts/translate_pptx_inline.py \
+python3 "$SKILL_DIR/scripts/translate_pptx_inline.py" \
   --mode apply --direction en2zh \
   --input input.pptx \
   --translations-file translations.json \
@@ -148,7 +133,7 @@ python3 scripts/translate_pptx_inline.py \
 ```
 
 此步骤自动完成：
-1. 段落级文本替换（翻译写入首 run，清空其余 run）
+1. 段落级文本替换（翻译写入首 run，清空其余 run；因此同一段落内的局部加粗、变色会统一成首个 run 的格式，需要时手动恢复）
 2. 中文标点清洗
 3. 三层字体替换
 4. **文本框自动适配**（保留原有 spAutoFit/normAutofit，仅对无设置的开启换行+normAutofit）
@@ -165,13 +150,13 @@ apply 完成后会自动输出质检报告。如果发现问题，修正 JSON �
 ```bash
 export OPENAI_API_KEY="sk-..."
 # 中→英（默认）
-python3 scripts/translate_pptx.py \
+python3 "$SKILL_DIR/scripts/translate_pptx.py" \
   --input input.pptx \
   --output output_EN.pptx \
   --model gpt-4o-mini
 
 # 英→中
-python3 scripts/translate_pptx.py \
+python3 "$SKILL_DIR/scripts/translate_pptx.py" \
   --direction en2zh \
   --input input.pptx \
   --output output_ZH.pptx \

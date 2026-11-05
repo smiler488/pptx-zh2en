@@ -416,8 +416,8 @@ def extract_texts(pptx_path, output_json, direction="zh2en"):
         en_count = sum(1 for it in items if it["has_existing_english"])
         if en_count:
             print(f"   ⚡ {en_count} 个段落已含英文翻译（JSON 中 existing_english 字段）")
-    print(f"\n请翻译 JSON 中所有 'translated' 字段，然后运行 --mode apply")
-    print(f"💡 提示：has_existing_english=true 的条目，可直接将 existing_english 填入 translated")
+    print("\n请翻译 JSON 中所有 'translated' 字段，然后运行 --mode apply")
+    print("💡 提示：has_existing_english=true 的条目，可直接将 existing_english 填入 translated")
 
 
 # ═════════════════════════════════════════════════════════════════════════
@@ -641,9 +641,9 @@ def apply_translations(pptx_path, translations_json, output_path, direction="zh2
             print(f"   ... 还有 {len(qa_results['issues'])-15} 个（省略）")
     else:
         if direction == "zh2en":
-            print(f"\n✅ 自动质检通过：无残留中文、无标点问题、无重复词")
+            print("\n✅ 自动质检通过：无残留中文、无标点问题、无重复词")
         else:
-            print(f"\n✅ 自动质检通过：无残留英文、无标点问题")
+            print("\n✅ 自动质检通过：无残留英文、无标点问题")
 
 
 # ═════════════════════════════════════════════════════════════════════════
